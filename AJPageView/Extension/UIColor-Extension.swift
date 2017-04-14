@@ -70,6 +70,40 @@ extension UIColor {
         return UIColor(r: CGFloat(arc4random_uniform(256)), g: CGFloat(arc4random_uniform(256)), b: CGFloat(arc4random_uniform(256)),alpha:  CGFloat(drand48()))
         
     }
+    
+    class func getRGBDelta(_ firstColor: UIColor, _ secondColor: UIColor) -> (CGFloat, CGFloat, CGFloat){
+        
+        guard let firstCpm = firstColor.cgColor.components else {
+            
+            fatalError("保证选中颜色是RGB方式传入")
+            
+        }
+        
+        let firstRGB = firstColor.getRGB()
+        
+        guard let secondCpm = secondColor.cgColor.components else {
+            
+            fatalError("保证默认颜色是RGB方式传入")
+            
+        }
+        
+        let secondRGB = secondColor.getRGB()
+        
+        return (firstRGB.0 - secondRGB.0, firstRGB.1 - secondRGB.1, firstRGB.2 - secondRGB.2)
+        
+    }
+    
+    func getRGB() -> (CGFloat, CGFloat, CGFloat) {
+        
+        guard let cmp = cgColor.components else {
+            
+            fatalError("保证默认颜色是RGB方式传入")
+            
+        }
+        
+        return (cmp[0] * 255, cmp[1] * 255, cmp[2] * 255)
+        
+    }
 }
 
 
