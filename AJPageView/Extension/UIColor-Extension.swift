@@ -73,7 +73,7 @@ extension UIColor {
     
     class func getRGBDelta(_ firstColor: UIColor, _ secondColor: UIColor) -> (CGFloat, CGFloat, CGFloat){
         
-        guard let firstCpm = firstColor.cgColor.components else {
+        guard firstColor.cgColor.components != nil else {
             
             fatalError("保证选中颜色是RGB方式传入")
             
@@ -81,7 +81,7 @@ extension UIColor {
         
         let firstRGB = firstColor.getRGB()
         
-        guard let secondCpm = secondColor.cgColor.components else {
+        guard secondColor.cgColor.components != nil else {
             
             fatalError("保证默认颜色是RGB方式传入")
             

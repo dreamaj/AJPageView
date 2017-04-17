@@ -30,7 +30,7 @@ class AJContentView: UIView {
     fileprivate var parentVc: UIViewController
     
     fileprivate var startOffsetX: CGFloat = 0.0
-    
+    fileprivate var isForbidScroll : Bool = false
     fileprivate lazy var collectionView: UICollectionView = {
         
         let layout = UICollectionViewFlowLayout()
@@ -119,15 +119,19 @@ extension AJContentView: UICollectionViewDelegate {
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        
+//        print("1")
         if !decelerate {
+//            print("2")
             contentEndScroll()
         }
+
     }
-    
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
         //判断和开始时的偏移量是否一致
-        guard startOffsetX != scrollView.contentOffset.x else {
+        guard startOffsetX != scrollView.contentOffset.x, !isForbidScroll else {
             return
         }
 
@@ -166,9 +170,12 @@ extension AJContentView: UICollectionViewDelegate {
     
     private func contentEndScroll() {
         
+        guard !isForbidScroll else {
+            return
+        }
+        
         let currentIndex = Int(collectionView.contentOffset.x / collectionView.bounds.width)
 
-        
         //通知titleView进行调整
         delegate?.contentView(self, targetIndex: currentIndex)
         
@@ -180,6 +187,7 @@ extension AJContentView: UICollectionViewDelegate {
 extension AJContentView: AJTitleViewDelegate {
 
     func titleView(_ titleView: AJTitleView, targetIndex: Int) {
+        isForbidScroll = true
         let indexPath = IndexPath(item: targetIndex, section: 0)
         collectionView.scrollToItem(at: indexPath, at: .left, animated: false)
     }

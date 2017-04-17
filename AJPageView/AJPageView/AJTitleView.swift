@@ -38,6 +38,14 @@ class AJTitleView: UIView {
         
     }()
     
+    fileprivate lazy var bottomLine: UIView = {
+        let bottomLine = UIView()
+        bottomLine.backgroundColor = self.style.scrollLineColor
+        bottomLine.frame.size.height = self.style.scrollLineHeight
+        bottomLine.frame.origin.y = self.bounds.height - self.style.scrollLineHeight
+        return bottomLine
+    }()
+    
     init(frame: CGRect, titles: [String], style: AJTitlesStyle) {
         
         self.titles = titles
@@ -61,12 +69,19 @@ class AJTitleView: UIView {
 extension AJTitleView {
 
     fileprivate func setupUI() {
+        //将UIScrollview添加到View中
         addSubview(scrollView)
-        
+        //将titleLabel添加到uiscrollview中
         setupTitleLabels()
-        
         //设置titlelable的frame
         setupTitleLabelsFrame()
+        //添加滚动条
+        if style.isShowScrollLine {
+            scrollView.addSubview(bottomLine)
+        }
+        
+        
+        
     }
     
     private func setupTitleLabels() {
@@ -107,6 +122,10 @@ extension AJTitleView {
                 w = (titles[i] as NSString).boundingRect(with: CGSize(width: CGFloat(MAXFLOAT),height: 0), options: .usesLineFragmentOrigin, attributes: [NSFontAttributeName: label.font], context: nil).width
                 if i == 0 {
                     x = style.itemMargin * 0.5
+                    if style.isShowScrollLine {
+                        bottomLine.frame.origin.x = x
+                        bottomLine.frame.size.width = w
+                    }
                 } else {
                     x = titleLabels[i - 1].frame.maxX + style.itemMargin
                     
@@ -117,6 +136,12 @@ extension AJTitleView {
                 //不可滚动
                 w = bounds.width / CGFloat(count)
                 x = w * CGFloat(i)
+                
+                if i == 0 && style.isShowScrollLine {
+                    bottomLine.frame.origin.x = 0
+                    bottomLine.frame.size.width = w
+
+                }
                 
             }
             
@@ -134,15 +159,20 @@ extension AJTitleView {
 
     @objc fileprivate func titleLabelClick(_ tapGes: UITapGestureRecognizer) {
         
-        //找到用户点击View 以及 上一个view
+        //找到用户点击View
         let targetLabel = tapGes.view as! UILabel
         
         adjustTitleLabel(targetIndex: targetLabel.tag)
         
+        if style.isShowScrollLine {
+            UIView.animate(withDuration: 0.25, animations: { 
+                self.bottomLine.frame.origin.x = targetLabel.frame.origin.x
+                self.bottomLine.frame.size.width = targetLabel.frame.size.width
+            })
+        }
+        
         //通知contentView
         delegate?.titleView(self, targetIndex: currentIndex)
-        
-        
         
         
     }
@@ -191,6 +221,9 @@ extension AJTitleView: AJContentViewDelegate {
     }
     
     func contentView(_ contentView: AJContentView, targetIndex: Int, progress: CGFloat) {
+        
+        print("progess \(progress)")
+        
         //1.取出label
         let targetLabel = titleLabels[targetIndex]
         let sourceLabel = titleLabels[currentIndex]
@@ -200,12 +233,19 @@ extension AJTitleView: AJContentViewDelegate {
         let selectedRGB = style.selectColor.getRGB()
         let normalRGB = style.normalColor.getRGB()
         
-        targetLabel.textColor = UIColor(r: normalRGB.0 + deltaRGB.0 * progress, g: normalRGB.1 + deltaRGB.2 * progress, b: normalRGB.2 + deltaRGB.2 * progress)
+        targetLabel.textColor = UIColor(r: normalRGB.0 + deltaRGB.0 * progress, g: normalRGB.1 + deltaRGB.1 * progress, b: normalRGB.2 + deltaRGB.2 * progress)
         
-        sourceLabel.textColor = UIColor(r: selectedRGB.0 - deltaRGB.0 * progress, g: selectedRGB.1 - deltaRGB.2 * progress, b: selectedRGB.2 - deltaRGB.2 * progress)
+        sourceLabel.textColor = UIColor(r: selectedRGB.0 - deltaRGB.0 * progress, g: selectedRGB.1 - deltaRGB.1 * progress, b: selectedRGB.2 - deltaRGB.2 * progress)
         
+        if style.isShowScrollLine {
+            let deltaX = targetLabel.frame.origin.x - sourceLabel.frame.origin.x
+            let deltaW = targetLabel.frame.width - sourceLabel.frame.width
+            bottomLine.frame.origin.x = sourceLabel.frame.origin.x + deltaX * progress
+            bottomLine.frame.size.width = sourceLabel.frame.width + deltaW * progress
+        }
         
     }
+    
     
 }
 
